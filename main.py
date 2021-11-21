@@ -2,31 +2,48 @@ import random
 import string
 from browser import *
 
+FAKE_CREDS = {
+    'parent': {
+        'name': 'Пупкин', 'surname': 'Владислав', 'middleName': 'Олегович',
+        'phone': '', 'email': '', 'password': 'Qwerty132'
+    },
+    'student': {
+        'name': 'Пупкин', 'surname': 'Алексей', 'middleName': 'Владиславович',
+        "grade": ''
+    }
+}
 
-grade = str(input('Класс: '))
-if int(grade) not in range(1, 12):
-    print('Неверно указан класс')
-    exit()
 
-count = int(input('Количество ссылок: '))
-if count > 50:
-    print('Не рекомендуется генерировать столько ссылок за раз')
-    exit()
-
-
-def random_string(length):
+def _random_email(length=9):
     letters = string.ascii_lowercase
-    rand_string = ''.join(random.choice(letters) for i in range(length))
-    return rand_string
+    rand_string = ''.join(random.choice(letters) for _ in range(length))
+    return f'{rand_string}@gmail.com'
 
-def random_phone():
+
+def _random_phone():
     return '+7908' + str(random.randint(1000000, 9999999))
 
 
-for i in range(count):
-    email = f'{random_string(9)}@gmail.com'
-    Registration(
-        {"name": 'Пупкин', "surname":'Владислав',"middleName":'Олегович', "phone": random_phone(), "email": email, 'password': 'Qwerty132'}, 
-        {"name": 'Пупкин', "surname":'Алексей',"middleName":'Владиславович',"grade": grade}
-    ).reg()
-    print(Auth(email, 'Qwerty132').get_fox_url(grade))
+def get_links(grade, count):
+    for _ in range(count):
+        FAKE_CREDS['parent']['email'] = _random_email()
+        FAKE_CREDS['parent']['phone'] = _random_phone()
+        FAKE_CREDS['student']['grade'] = grade
+        acc = Registration(FAKE_CREDS['parent'], FAKE_CREDS['student'])
+        acc.parent_reg()
+        acc.add_student()
+        print(get_fox_url(grade, acc.token))
+        
+if __name__ == '__main__':
+    grade = str(input('Класс: '))
+    if int(grade) not in range(1, 12):
+        print('Неверно указан класс')
+        exit()
+
+    count = int(input('Количество ссылок: '))
+    if count > 50:
+        print('Не рекомендуется генерировать столько ссылок за раз')
+        exit()
+
+
+    get_links(grade, count)
